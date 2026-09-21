@@ -2,5 +2,7 @@
   "name": "Dhruba Acharjee | Dhruba.exe — Engineer in Progress",
   "description": "Personal portfolio of Dhruba Acharjee — EEE student, technology enthusiast, robotics explorer, creator and aspiring entrepreneur.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

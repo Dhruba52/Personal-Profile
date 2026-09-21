@@ -39,6 +39,48 @@ const SUGGESTIONS = [
   "How can I contact or collaborate with him?",
 ];
 
+function getStaticKnowledgeResponse(query: string): string {
+  const q = query.toLowerCase();
+
+  if (q.includes('fire') || q.includes('fighting') || q.includes('extinguish')) {
+    return `**Fire Fighting Autonomous Robot**:\n- **Overview**: An autonomous robotic rover engineered to detect ambient fire sources and deploy water suppression.\n- **Core Stack**: Arduino Uno, 3-channel flame sensor array, L298N dual H-bridge motor driver, and a 5V submersible water pump with a directional servo nozzle.\n- **Status**: Tested and verified. Explore schematic details and source files in **#projects**!`;
+  }
+
+  if (q.includes('ecg') || q.includes('cardiac') || q.includes('biomedical') || q.includes('heart')) {
+    return `**ECG Monitoring Machine**:\n- **Overview**: Non-invasive biomedical analog acquisition system capturing electrocardiogram biosignals in real time.\n- **Core Stack**: AD8232 heart rate sensor, active band-pass filtering, and serial telemetry.\n- Check out the hardware schematics and signal processing notes in **#projects**!`;
+  }
+
+  if (q.includes('home') || q.includes('automation') || q.includes('smart') || q.includes('iot')) {
+    return `**Smart Home Automation System**:\n- **Overview**: Microcontroller-driven multi-node appliance controller with sensor feedback and safety trip algorithms.\n- **Stack**: Microcontroller, multi-channel opto-isolated relay modules, and environmental sensors.\n- Learn more in the **#projects** section!`;
+  }
+
+  if (q.includes('human') || q.includes('follow') || q.includes('ultrasonic') || q.includes('obstacle')) {
+    return `**Human Following Robot**:\n- **Overview**: Mobile robotics platform capable of tracking a target subject using ultrasonic and infrared distance triangulation.\n- **Stack**: Dual ultrasonic transducers, IR proximity sensors, and differential drive steering.\n- See full specs in **#projects**!`;
+  }
+
+  if (q.includes('skill') || q.includes('tech') || q.includes('stack') || q.includes('language') || q.includes('program')) {
+    return `**Dhruba's Technical Skills & Competencies**:\n- **Hardware & Embedded**: Arduino, ESP32 microcontrollers, sensor integration, actuator control.\n- **Circuit Design & Simulation**: Tinkercad, Proteus, circuit analysis, biomedical analog front-ends.\n- **Programming**: C, C++, Python, Microcontroller Logic.\n- **Documentation & Tools**: LaTeX, Git/GitHub, Video Editing.\n- Jump to **#skills** to view interactive skill modules!`;
+  }
+
+  if (q.includes('lead') || q.includes('cr') || q.includes('club') || q.includes('jsturc') || q.includes('representative')) {
+    return `**Leadership Roles & Activities**:\n- **Class Representative (CR)**: 5th Batch, Department of Electrical & Electronic Engineering (EEE) at Jamalpur Science & Technology University (JSTU).\n- **Assistant Organizing Secretary**: JSTU Robotics Club (JSTURC), coordinating technical workshops and robotics initiatives.\n- Explore his journey in the **#journey** and **#about** sections!`;
+  }
+
+  if (q.includes('education') || q.includes('jstu') || q.includes('university') || q.includes('study') || q.includes('semester') || q.includes('academic') || q.includes('background') || q.includes('who is') || q.includes('about')) {
+    return `**Academic Profile & Background**:\n- **Name**: Dhruba Acharjee (Dhruba.exe)\n- **Degree**: B.Sc. in Electrical and Electronic Engineering (EEE)\n- **Institution**: Jamalpur Science & Technology University (JSTU), Bangladesh\n- **Standing**: 2nd Year, 2nd Semester (Batch 05, Student ID: 24010608)\n- You can inspect full academic milestones in **#about**!`;
+  }
+
+  if (q.includes('contact') || q.includes('email') || q.includes('hire') || q.includes('message') || q.includes('reach') || q.includes('collaborat')) {
+    return `**Get in Touch with Dhruba**:\n- **Email**: dhruboacharjee52@gmail.com\n- **Location**: Jamalpur Sadar / Chandpur, Bangladesh\n- **GitHub**: https://github.com/dhruboacharjee52\n- You can send a direct transmission via the **#contact** form below!`;
+  }
+
+  if (q.includes('vision') || q.includes('future') || q.includes('goal')) {
+    return `**Dhruba's Vision & Roadmap**:\n- *"Student (learning foundations) ➔ Creator (building prototypes) ➔ Entrepreneur (building meaningful tech ventures)"*.\n- Focused on hardware innovation, robotics, and assistive technologies. See **#vision** for details!`;
+  }
+
+  return `I am Dhruba's AI portfolio assistant! Dhruba Acharjee is an Electrical & Electronic Engineering student at **JSTU**, Class Representative of EEE-05, and Assistant Organizing Secretary at **JSTU Robotics Club**.\n\nYou can explore his hardware prototypes in **#projects**, view his competencies in **#skills**, follow his timeline in **#journey**, or get in touch at **#contact**!`;
+}
+
 export const AIAssistant: React.FC = () => {
   const { theme } = useTheme();
   const isLight = theme === 'light';
@@ -120,23 +162,33 @@ export const AIAssistant: React.FC = () => {
         text: m.text,
       }));
 
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: textToSend,
-          history,
-        }),
-      });
+      let replyText = '';
 
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: textToSend,
+            history,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          replyText = data.reply;
+        }
+      } catch (networkErr) {
+        // Fallback for static hosting like GitHub Pages without an Express server
+        console.warn('Backend /api/chat not reachable (static mode), using local dossier response.');
       }
 
-      const data = await res.json();
-      const replyText = data.reply || "I'm ready to answer any questions about Dhruba's engineering work!";
+      // If backend was not available or gave empty response, use our rich local knowledge responder
+      if (!replyText) {
+        replyText = getStaticKnowledgeResponse(textToSend);
+      }
 
       sfx.playSuccess();
       setMessages((prev) => [
@@ -155,7 +207,7 @@ export const AIAssistant: React.FC = () => {
         {
           id: `err-${Date.now()}`,
           role: 'assistant',
-          text: `I had trouble connecting to the Gemini server. Please check your network or try again in a moment.\n\nIn the meantime, you can explore Dhruba's projects in the **#projects** section or reach out at **dhruboacharjee52@gmail.com**.`,
+          text: getStaticKnowledgeResponse(textToSend),
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
